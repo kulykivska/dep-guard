@@ -50,8 +50,14 @@ while IFS= read -r pkg; do
     echo "$pkg: no package is allowed to run install hooks."
   fi
 
-  if [ -f "$(dirname "$pkg")/package-lock.json" ]; then
-    warn "$pkg" "npm runs postinstall for every dependency. Prefer bun/pnpm, or set ignore-scripts=true in .npmrc."
+  dir=$(dirname "$pkg")
+  if [ -f "$dir/package-lock.json" ]; then
+    # npm runs install hooks for everything unless .npmrc opts out.
+    if grep -qsE '^[[:space:]]*ignore-scripts[[:space:]]*=[[:space:]]*true' "$dir/.npmrc" .npmrc; then
+      echo "$pkg: npm install hooks are disabled via .npmrc."
+    else
+      warn "$pkg" "npm runs postinstall for every dependency. Prefer bun/pnpm, or set ignore-scripts=true in .npmrc."
+    fi
   fi
 done < <(git ls-files '*package.json' | grep -v node_modules)
 
