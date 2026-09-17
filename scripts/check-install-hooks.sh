@@ -7,6 +7,11 @@
 # that picks up the poisoned release automatically.
 set -uo pipefail
 
+# Advisory mode reports every finding but exits 0. It exists for rolling this
+# check onto a repo that already has a backlog: a check that is red from day
+# one teaches everyone to ignore it. Clean the backlog, then turn it off.
+advisory=${DEP_GUARD_ADVISORY:-false}
+
 status=0
 warn() { printf '::warning file=%s::%s\n' "$1" "$2"; status=1; }
 fail() { printf '::error file=%s::%s\n' "$1" "$2"; status=1; }
@@ -78,4 +83,8 @@ if git ls-files '*requirements*.txt' '*pyproject.toml' | grep -q . \
   status=1
 fi
 
+if [ "$status" -ne 0 ] && [ "$advisory" != "false" ]; then
+  echo "::notice::dep-guard is in advisory mode: the findings above do not fail this run."
+  exit 0
+fi
 exit $status

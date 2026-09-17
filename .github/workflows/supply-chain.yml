@@ -21,6 +21,10 @@ on:
         description: 'Set true for private repos without Dependency Review enabled.'
         type: boolean
         default: false
+      advisory:
+        description: 'Report install-hook and pinning findings without failing the run. For rolling onto a repo with an existing backlog.'
+        type: boolean
+        default: false
 
 jobs:
   # Layer 1 — known vulnerabilities across every ecosystem present in the repo
@@ -65,6 +69,8 @@ jobs:
           ref: ${{ inputs.ref }}
           path: .dep-guard
       - name: Check for install-time code execution
+        env:
+          DEP_GUARD_ADVISORY: ${{ inputs.advisory }}
         run: bash .dep-guard/scripts/check-install-hooks.sh
       # base_ref is attacker-controlled text (a branch name), so it reaches
       # the shell as an environment variable, never as ${{ }} interpolation.

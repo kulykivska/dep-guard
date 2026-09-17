@@ -11,7 +11,7 @@ gets disabled, and a disabled guard protects nothing.
 
 | Hook | Trigger | Blocks |
 |---|---|---|
-| `guard-destructive-ops.sh` | any Bash call | destroying a Fly.io app, volume or postgres cluster; `scale count 0`; unsetting Fly secrets; `DROP`/`TRUNCATE` through a database client; force-push to main/master |
+| `guard-destructive-ops.sh` | any Bash call | destroying a Fly.io app, volume or postgres cluster; `scale count 0`; unsetting Fly secrets; `DROP`/`TRUNCATE` through a database client; a forced push to main/master, named or implied by the checked-out branch |
 | `pre-commit-guard.sh` | `git commit` | AI attribution trailers in the message; secrets/PII in the staged diff |
 | `pre-push-secrets-scan.sh` | `git push` | secrets/PII in the commits this push would actually send |
 | `pre-push-gate.sh` | `git push` | any push that has not passed a review-and-fix pass |
