@@ -35,6 +35,11 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    with:
+      # Advisory mode has to reach this job too. A repo with a vulnerability
+      # backlog would otherwise be red from the first run whatever the
+      # install-hook check says, which is the failure this mode exists to avoid.
+      fail-on-vuln: ${{ !inputs.advisory }}
 
   # Layer 2 — what this specific diff adds or upgrades, and under which license.
   dependency-review:
