@@ -1,4 +1,4 @@
-name: dep-guard
+name: Dependency Supply Chain Guard
 description: Fail a build when a dependency can run code at install time or drift under a floating range.
 branding:
   icon: shield
