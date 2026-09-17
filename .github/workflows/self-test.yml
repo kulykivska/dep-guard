@@ -9,10 +9,13 @@ on:
   schedule:
     - cron: '30 6 * * 1'
 
+# A caller must grant everything the called workflow's jobs request, or the
+# whole run fails at startup: dependency-review needs pull-requests: write.
 permissions:
   actions: read
   contents: read
   security-events: write
+  pull-requests: write
 
 jobs:
   guard:
