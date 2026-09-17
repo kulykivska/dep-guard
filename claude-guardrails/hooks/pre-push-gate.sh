@@ -22,7 +22,9 @@ printf '%s' "$cmd" | grep -Eq 'git([[:space:]]+-[^[:space:]]+)*[[:space:]]+push'
 
 # Run in the session's working directory.
 cwd=$(extract cwd)
-[ -n "$cwd" ] && cd "$cwd" 2>/dev/null
+# A failed cd would gate whatever directory the hook happens to be in, so
+# bail out instead and let the push through (fail open, as everywhere else).
+[ -n "$cwd" ] && { cd "$cwd" 2>/dev/null || exit 0; }
 
 # Not a git repo -> nothing to gate.
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
