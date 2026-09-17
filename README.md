@@ -55,6 +55,15 @@ It reports new outbound network calls, new hardcoded hosts, new process
 execution, and new environment/credential access introduced between the two
 versions.
 
+## Also here: claude-guardrails
+
+`claude-guardrails/` holds the blocking Claude Code hooks that guard the other
+half of the problem — not what a dependency does, but what an agent is about
+to do with your machine: destroying Fly.io resources, `DROP`ping a table,
+force-pushing to main, committing an AI attribution trailer, or pushing a diff
+that contains a real credential. They run before the tool call, and they fail
+open by design. See `claude-guardrails/README.md`.
+
 ## Inputs
 
 | Input | Default | Meaning |
