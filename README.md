@@ -70,14 +70,16 @@ open by design. See `claude-guardrails/README.md`.
 |---|---|---|
 | `fail-on-severity` | `moderate` | Severity floor that fails the run |
 | `deny-licenses` | AGPL/GPL-3.0/SSPL | Licenses rejected in new dependencies |
-| `skip-license-check` | `false` | Set `true` on private repos without Dependency Review |
+| `advanced-security` | `true` | Set `false` on a private repo without GitHub Advanced Security: it skips Dependency Review and stops the SARIF upload, which that repo would reject |
+| `advisory` | `false` | Report findings without failing the run, for rolling onto a repo with an existing backlog |
 | `ref` | `v1` | dep-guard ref the scripts are loaded from |
 
 ## Notes
 
-- Dependency Review needs Dependency Graph enabled. Public repos have it by
-  default; private repos need GitHub Advanced Security or
-  `skip-license-check: true`.
+- Dependency Review and the Security tab need GitHub Advanced Security. Public
+  repos have what they need; on a private repo without it, pass
+  `advanced-security: false` or the run fails on the SARIF upload alone,
+  whatever the scan found.
 - Pushing workflow files needs the `workflow` OAuth scope:
   `gh auth refresh -s workflow`.
 

@@ -17,10 +17,10 @@ on:
         description: 'Ref of dep-guard to load the audit scripts from. Keep in sync with the tag you call.'
         type: string
         default: v1
-      skip-license-check:
-        description: 'Set true for private repos without Dependency Review enabled.'
+      advanced-security:
+        description: 'Whether GitHub Advanced Security is available. Private repos without it cannot run Dependency Review and cannot accept a SARIF upload, so set this false there.'
         type: boolean
-        default: false
+        default: true
       advisory:
         description: 'Report install-hook and pinning findings without failing the run. For rolling onto a repo with an existing backlog.'
         type: boolean
@@ -40,10 +40,14 @@ jobs:
       # backlog would otherwise be red from the first run whatever the
       # install-hook check says, which is the failure this mode exists to avoid.
       fail-on-vuln: ${{ !inputs.advisory }}
+      # Without Advanced Security the repository rejects the SARIF upload and
+      # the job fails on that alone, whatever the scan found. Findings then
+      # live in the job log instead of the Security tab.
+      upload-sarif: ${{ inputs.advanced-security }}
 
   # Layer 2 — what this specific diff adds or upgrades, and under which license.
   dependency-review:
-    if: github.event_name == 'pull_request' && inputs.skip-license-check == false
+    if: github.event_name == 'pull_request' && inputs.advanced-security
     runs-on: ubuntu-latest
     permissions:
       contents: read
