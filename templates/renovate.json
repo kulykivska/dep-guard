@@ -1,0 +1,18 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Never adopt a release younger than 7 days. Most malicious releases are yanked within hours, so waiting costs nothing and catches what scanners cannot.",
+      "matchPackagePatterns": ["*"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Security fixes skip the cooldown.",
+      "matchPackagePatterns": ["*"],
+      "isVulnerabilityAlert": true,
+      "minimumReleaseAge": null
+    }
+  ]
+}

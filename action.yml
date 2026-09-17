@@ -1,0 +1,30 @@
+name: dep-guard
+description: Fail a build when a dependency can run code at install time or drift under a floating range.
+branding:
+  icon: shield
+  color: purple
+inputs:
+  summary:
+    description: Write the dependency diff to the job summary (pull requests only).
+    required: false
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    # Both values reach the shell as environment variables rather than ${{ }}
+    # interpolation: a branch name is untrusted input and would otherwise be
+    # pasted straight into the script.
+    - name: Check for install-time code execution
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: bash "$ACTION_PATH/scripts/check-install-hooks.sh"
+    - name: Summarize dependency changes
+      if: inputs.summary == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        BASE_REF: ${{ github.base_ref }}
+      run: |
+        bash "$ACTION_PATH/scripts/manifest-diff.sh" \
+          "origin/$BASE_REF" HEAD >> "$GITHUB_STEP_SUMMARY"

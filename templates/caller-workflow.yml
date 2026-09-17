@@ -1,0 +1,33 @@
+# Copy to .github/workflows/supply-chain.yml in any repo you want guarded.
+name: Supply chain
+
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - '**/bun.lock'
+      - '**/package-lock.json'
+      - '**/pnpm-lock.yaml'
+      - '**/yarn.lock'
+      - '**/requirements*.txt'
+      - '**/pyproject.toml'
+      - '**/uv.lock'
+      - '**/poetry.lock'
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/**'
+  schedule:
+    - cron: '30 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  guard:
+    uses: kulykivska/dep-guard/.github/workflows/supply-chain.yml@v1

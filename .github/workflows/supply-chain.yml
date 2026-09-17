@@ -1,0 +1,77 @@
+name: Supply chain
+
+# Reusable workflow: consumers call this from their own repo with one job.
+# The caller owns the triggers; this file owns what actually runs.
+on:
+  workflow_call:
+    inputs:
+      fail-on-severity:
+        description: 'Minimum vulnerability severity that fails the run (low/moderate/high/critical).'
+        type: string
+        default: moderate
+      deny-licenses:
+        description: 'Comma-separated SPDX licenses to reject in new dependencies.'
+        type: string
+        default: 'AGPL-3.0, AGPL-3.0-only, AGPL-3.0-or-later, GPL-3.0, SSPL-1.0'
+      ref:
+        description: 'Ref of dep-guard to load the audit scripts from. Keep in sync with the tag you call.'
+        type: string
+        default: v1
+      skip-license-check:
+        description: 'Set true for private repos without Dependency Review enabled.'
+        type: boolean
+        default: false
+
+jobs:
+  # Layer 1 — known vulnerabilities across every ecosystem present in the repo
+  # (npm/bun, PyPI, crates, Go, Maven...). Results land in the Security tab.
+  vulnerabilities:
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.6.0
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+  # Layer 2 — what this specific diff adds or upgrades, and under which license.
+  dependency-review:
+    if: github.event_name == 'pull_request' && inputs.skip-license-check == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: ${{ inputs.fail-on-severity }}
+          comment-summary-in-pr: on-failure
+          deny-licenses: ${{ inputs.deny-licenses }}
+
+  # Layer 3 — the part a CVE feed cannot answer: did anything gain the ability
+  # to run code at install time, or stop being pinned?
+  install-hooks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the calling repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check out dep-guard scripts
+        uses: actions/checkout@v4
+        with:
+          repository: kulykivska/dep-guard
+          ref: ${{ inputs.ref }}
+          path: .dep-guard
+      - name: Check for install-time code execution
+        run: bash .dep-guard/scripts/check-install-hooks.sh
+      # base_ref is attacker-controlled text (a branch name), so it reaches
+      # the shell as an environment variable, never as ${{ }} interpolation.
+      - name: Show the dependency diff
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          bash .dep-guard/scripts/manifest-diff.sh \
+            "origin/$BASE_REF" HEAD >> "$GITHUB_STEP_SUMMARY"
